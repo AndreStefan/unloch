@@ -1,0 +1,121 @@
+name: Deploy Frontends
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'dashboard/**'
+      - 'patient-app/**'
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  # ── Deploy Dashboard ──────────────────────────────────
+
+  deploy-dashboard:
+    name: Deploy Dashboard
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: dashboard/package-lock.json
+
+      - name: Install and build
+        working-directory: dashboard
+        run: |
+          npm ci
+          npm run build
+        env:
+          VITE_API_URL: https://api.unloch.me
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Sync to S3
+        run: |
+          aws s3 sync dashboard/dist/ s3://${{ vars.DASHBOARD_BUCKET }} \
+            --delete \
+            --cache-control "public, max-age=31536000, immutable" \
+            --exclude "index.html" \
+            --exclude "sw.js"
+
+          # index.html with short cache (for SPA updates)
+          aws s3 cp dashboard/dist/index.html s3://${{ vars.DASHBOARD_BUCKET }}/index.html \
+            --cache-control "public, max-age=60"
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ vars.DASHBOARD_CF_DISTRIBUTION_ID }} \
+            --paths "/*"
+
+  # ── Deploy Patient App ────────────────────────────────
+
+  deploy-patient-app:
+    name: Deploy Patient App
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: patient-app/package-lock.json
+
+      - name: Install and build
+        working-directory: patient-app
+        run: |
+          npm ci
+          npm run build
+        env:
+          VITE_API_URL: https://api.unloch.me
+          VITE_WS_URL: wss://api.unloch.me
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Sync to S3
+        run: |
+          aws s3 sync patient-app/dist/ s3://${{ vars.PATIENT_APP_BUCKET }} \
+            --delete \
+            --cache-control "public, max-age=31536000, immutable" \
+            --exclude "index.html" \
+            --exclude "sw.js" \
+            --exclude "manifest.webmanifest"
+
+          # PWA files with short cache
+          aws s3 cp patient-app/dist/index.html s3://${{ vars.PATIENT_APP_BUCKET }}/index.html \
+            --cache-control "public, max-age=60"
+
+          # Service worker must not be cached
+          if [ -f patient-app/dist/sw.js ]; then
+            aws s3 cp patient-app/dist/sw.js s3://${{ vars.PATIENT_APP_BUCKET }}/sw.js \
+              --cache-control "no-cache"
+          fi
+
+          if [ -f patient-app/dist/manifest.webmanifest ]; then
+            aws s3 cp patient-app/dist/manifest.webmanifest s3://${{ vars.PATIENT_APP_BUCKET }}/manifest.webmanifest \
+              --cache-control "public, max-age=3600"
+          fi
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ vars.PATIENT_APP_CF_DISTRIBUTION_ID }} \
+            --paths "/*"

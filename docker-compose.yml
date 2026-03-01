@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  # ── PostgreSQL ──
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: unloch
+      POSTGRES_USER: unloch
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-localdev123}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U unloch"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis ──
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD:-localdev123}
+    volumes:
+      - redisdata:/data
+
+  # ── Backend API ──
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://unloch:${DB_PASSWORD:-localdev123}@postgres:5432/unloch
+      REDIS_URL: redis://:${REDIS_PASSWORD:-localdev123}@redis:6379
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-production}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      AI_SERVICE_URL: http://ai-service:8000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  # ── AI Service ──
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      DATABASE_URL: postgresql://unloch:${DB_PASSWORD:-localdev123}@postgres:5432/unloch
+
+  # ── Therapist Dashboard ──
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_API_URL: http://localhost:4000
+
+  # ── Patient App ──
+  patient-app:
+    build:
+      context: ./patient-app
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      VITE_API_URL: http://localhost:4000
+
+volumes:
+  pgdata:
+  redisdata:

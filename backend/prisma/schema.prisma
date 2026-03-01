@@ -1,0 +1,247 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pgvector(map: "vector", schema: "public"), pgcrypto]
+}
+
+// ═══════════════════════════════════════════
+// PRACTICE & USERS
+// ═══════════════════════════════════════════
+
+model Practice {
+  id               String      @id @default(uuid())
+  name             String
+  subscriptionTier String      @default("free") @map("subscription_tier")
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+  therapists       Therapist[]
+
+  @@map("practices")
+}
+
+model Therapist {
+  id           String   @id @default(uuid())
+  practiceId   String   @map("practice_id")
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String
+  licenseType  String?  @map("license_type")
+  licenseState String?  @map("license_state")
+  mfaSecret    String?  @map("mfa_secret")
+  mfaEnabled   Boolean  @default(false) @map("mfa_enabled")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  practice    Practice     @relation(fields: [practiceId], references: [id])
+  patients    Patient[]
+  rules       Rule[]
+  briefings   Briefing[]
+  assignments Assignment[]
+  alerts      Alert[]
+
+  @@map("therapists")
+}
+
+model Patient {
+  id             String    @id @default(uuid())
+  therapistId    String    @map("therapist_id")
+  email          String    @unique
+  name           String
+  consentStatus  String    @default("pending") @map("consent_status")
+  consentDate    DateTime? @map("consent_date")
+  crisisContact  String?   @map("crisis_contact")
+  active         Boolean   @default(true)
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  therapist    Therapist     @relation(fields: [therapistId], references: [id])
+  rules        Rule[]
+  messages     Message[]
+  moodLogs     MoodLog[]
+  crisisEvents CrisisEvent[]
+  assignments  Assignment[]
+  briefings    Briefing[]
+  alerts       Alert[]
+
+  @@map("patients")
+}
+
+// ═══════════════════════════════════════════
+// RULES ENGINE
+// ═══════════════════════════════════════════
+
+model Rule {
+  id              String   @id @default(uuid())
+  therapistId     String   @map("therapist_id")
+  patientId       String?  @map("patient_id")
+  name            String
+  triggerConfig   Json     @map("trigger_config")
+  responseContent String   @map("response_content") @db.Text
+  attribution     String   @default("Your therapist's guidance:")
+  escalationLevel String   @default("informational") @map("escalation_level")
+  active          Boolean  @default(true)
+  expiresAt       DateTime? @map("expires_at")
+  version         Int      @default(1)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  therapist    Therapist    @relation(fields: [therapistId], references: [id])
+  patient      Patient?     @relation(fields: [patientId], references: [id])
+  versions     RuleVersion[]
+  messages     Message[]
+
+  @@map("rules")
+}
+
+model RuleVersion {
+  id              String   @id @default(uuid())
+  ruleId          String   @map("rule_id")
+  version         Int
+  triggerConfig   Json     @map("trigger_config")
+  responseContent String   @map("response_content") @db.Text
+  changedBy       String   @map("changed_by")
+  changedAt       DateTime @default(now()) @map("changed_at")
+
+  rule Rule @relation(fields: [ruleId], references: [id])
+
+  @@map("rule_versions")
+}
+
+// ═══════════════════════════════════════════
+// MESSAGES & INTERACTIONS
+// ═══════════════════════════════════════════
+
+model Message {
+  id              String   @id @default(uuid())
+  patientId       String   @map("patient_id")
+  direction       String   // "inbound" | "outbound"
+  content         String   @db.Text
+  messageType     String   @map("message_type") // "patient" | "rule_response" | "system" | "scope_boundary" | "crisis"
+  matchedRuleId   String?  @map("matched_rule_id")
+  confidenceScore Float?   @map("confidence_score")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  patient     Patient      @relation(fields: [patientId], references: [id])
+  matchedRule Rule?        @relation(fields: [matchedRuleId], references: [id])
+  crisisEvent CrisisEvent?
+
+  @@index([patientId, createdAt])
+  @@map("messages")
+}
+
+model MoodLog {
+  id        String   @id @default(uuid())
+  patientId String   @map("patient_id")
+  score     Int      // 1-10
+  note      String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  patient Patient @relation(fields: [patientId], references: [id])
+
+  @@index([patientId, createdAt])
+  @@map("mood_logs")
+}
+
+// ═══════════════════════════════════════════
+// CRISIS & SAFETY
+// ═══════════════════════════════════════════
+
+model CrisisEvent {
+  id                String    @id @default(uuid())
+  patientId         String    @map("patient_id")
+  triggerMessageId  String    @unique @map("trigger_message_id")
+  detectionLayer    String    @map("detection_layer") // "keyword" | "llm" | "contextual"
+  confidence        Float
+  responseDelivered String    @map("response_delivered") @db.Text
+  therapistNotified DateTime? @map("therapist_notified_at")
+  resolvedAt        DateTime? @map("resolved_at")
+  resolvedBy        String?   @map("resolved_by")
+  createdAt         DateTime  @default(now()) @map("created_at")
+
+  patient        Patient @relation(fields: [patientId], references: [id])
+  triggerMessage Message @relation(fields: [triggerMessageId], references: [id])
+
+  @@map("crisis_events")
+}
+
+// ═══════════════════════════════════════════
+// ASSIGNMENTS & BRIEFINGS
+// ═══════════════════════════════════════════
+
+model Assignment {
+  id          String    @id @default(uuid())
+  patientId   String    @map("patient_id")
+  therapistId String    @map("therapist_id")
+  type        String    // "homework" | "exercise" | "medication"
+  title       String
+  content     String?   @db.Text
+  dueDate     DateTime? @map("due_date")
+  completedAt DateTime? @map("completed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  patient   Patient   @relation(fields: [patientId], references: [id])
+  therapist Therapist @relation(fields: [therapistId], references: [id])
+
+  @@map("assignments")
+}
+
+model Briefing {
+  id          String   @id @default(uuid())
+  patientId   String   @map("patient_id")
+  therapistId String   @map("therapist_id")
+  sessionDate DateTime @map("session_date")
+  content     String   @db.Text
+  generatedAt DateTime @default(now()) @map("generated_at")
+
+  patient   Patient   @relation(fields: [patientId], references: [id])
+  therapist Therapist @relation(fields: [therapistId], references: [id])
+
+  @@map("briefings")
+}
+
+// ═══════════════════════════════════════════
+// ALERTS
+// ═══════════════════════════════════════════
+
+model Alert {
+  id          String    @id @default(uuid())
+  therapistId String    @map("therapist_id")
+  patientId   String    @map("patient_id")
+  ruleId      String?   @map("rule_id")
+  messageId   String?   @map("message_id")
+  level       String    // "informational" | "alert" | "urgent"
+  status      String    @default("open") // "open" | "resolved"
+  resolvedAt  DateTime? @map("resolved_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  therapist Therapist @relation(fields: [therapistId], references: [id])
+  patient   Patient   @relation(fields: [patientId], references: [id])
+
+  @@index([therapistId, status, createdAt])
+  @@map("alerts")
+}
+
+// ═══════════════════════════════════════════
+// AUDIT LOG (append-only)
+// ═══════════════════════════════════════════
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  actorId    String   @map("actor_id")
+  actorType  String   @map("actor_type") // "therapist" | "patient" | "system"
+  action     String   // "rule.create" | "message.send" | "crisis.detect" | etc.
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  metadata   Json?
+  ipAddress  String?  @map("ip_address")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([actorId, createdAt])
+  @@index([entityType, entityId])
+  @@map("audit_log")
+}

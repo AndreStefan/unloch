@@ -1,0 +1,37 @@
+# Dependencies
+node_modules
+**/node_modules
+__pycache__
+**/__pycache__
+
+# Version control
+.git
+.gitignore
+
+# Documentation
+*.md
+docs/
+
+# Environment files (never copy secrets)
+.env
+.env.*
+!.env.example
+
+# Infrastructure (not needed in app images)
+infra/
+.github/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test artifacts
+coverage/
+.vitest/
+
+# Build artifacts (will be generated fresh)
+**/dist/

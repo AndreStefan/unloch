@@ -1,0 +1,128 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [develop]
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  ECS_CLUSTER: unloch-staging-cluster
+
+jobs:
+  deploy:
+    name: Deploy Staging
+    runs-on: ubuntu-latest
+    # Only deploy after CI completes successfully
+    needs: []
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: aws-actions/amazon-ecr-login@v2
+        id: ecr-login
+
+      # ── Run Prisma Migrations ──────────────────────────
+
+      - name: Run database migrations
+        run: |
+          TASK_ARN=$(aws ecs run-task \
+            --cluster $ECS_CLUSTER \
+            --task-definition unloch-staging-migrate \
+            --launch-type FARGATE \
+            --network-configuration "awsvpcConfiguration={subnets=[${{ vars.PRIVATE_SUBNET_IDS }}],securityGroups=[${{ vars.BACKEND_SG_ID }}]}" \
+            --query 'tasks[0].taskArn' \
+            --output text)
+
+          echo "Migration task: $TASK_ARN"
+
+          aws ecs wait tasks-stopped \
+            --cluster $ECS_CLUSTER \
+            --tasks $TASK_ARN
+
+          EXIT_CODE=$(aws ecs describe-tasks \
+            --cluster $ECS_CLUSTER \
+            --tasks $TASK_ARN \
+            --query 'tasks[0].containers[0].exitCode' \
+            --output text)
+
+          if [ "$EXIT_CODE" != "0" ]; then
+            echo "Migration failed with exit code: $EXIT_CODE"
+            exit 1
+          fi
+
+          echo "Migrations completed successfully"
+
+      # ── Update Backend Service ─────────────────────────
+
+      - name: Deploy backend
+        env:
+          ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+        run: |
+          # Get current task definition
+          TASK_DEF=$(aws ecs describe-task-definition \
+            --task-definition unloch-staging-backend \
+            --query 'taskDefinition' \
+            --output json)
+
+          # Update image in task definition
+          NEW_TASK_DEF=$(echo $TASK_DEF | jq \
+            --arg IMAGE "$ECR_REGISTRY/unloch-staging-backend:${{ github.sha }}" \
+            '.containerDefinitions[0].image = $IMAGE |
+             del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)')
+
+          # Register new task definition
+          NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
+            --cli-input-json "$NEW_TASK_DEF" \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+
+          # Update service
+          aws ecs update-service \
+            --cluster $ECS_CLUSTER \
+            --service unloch-staging-backend \
+            --task-definition $NEW_TASK_DEF_ARN
+
+      # ── Update AI Service ──────────────────────────────
+
+      - name: Deploy ai-service
+        env:
+          ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+        run: |
+          TASK_DEF=$(aws ecs describe-task-definition \
+            --task-definition unloch-staging-ai-service \
+            --query 'taskDefinition' \
+            --output json)
+
+          NEW_TASK_DEF=$(echo $TASK_DEF | jq \
+            --arg IMAGE "$ECR_REGISTRY/unloch-staging-ai-service:${{ github.sha }}" \
+            '.containerDefinitions[0].image = $IMAGE |
+             del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)')
+
+          NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
+            --cli-input-json "$NEW_TASK_DEF" \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+
+          aws ecs update-service \
+            --cluster $ECS_CLUSTER \
+            --service unloch-staging-ai-service \
+            --task-definition $NEW_TASK_DEF_ARN
+
+      # ── Wait for Stability ────────────────────────────
+
+      - name: Wait for services to stabilize
+        run: |
+          aws ecs wait services-stable \
+            --cluster $ECS_CLUSTER \
+            --services unloch-staging-backend unloch-staging-ai-service
+
+          echo "All services stable"

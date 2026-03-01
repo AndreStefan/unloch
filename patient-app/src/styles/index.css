@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+@theme {
+  /* Warm patient palette */
+  --color-cream: #FFF8F0;
+  --color-cream-dark: #F5EDDF;
+  --color-sage: #7CAB8A;
+  --color-sage-light: #A3C9AE;
+  --color-sage-dark: #5E8F6E;
+  --color-navy: #2C3E5A;
+  --color-navy-light: #3D5275;
+  --color-navy-dark: #1B2A4A;
+  --color-warm-white: #FFFCF7;
+  --color-warm-gray: #6B7280;
+  --color-warm-gray-light: #9CA3AF;
+
+  /* Functional colors */
+  --color-crisis: #DC2626;
+  --color-crisis-light: #FEE2E2;
+  --color-crisis-dark: #991B1B;
+  --color-patient-bubble: #2C3E5A;
+  --color-rule-bubble: #E8F5EC;
+  --color-system-gray: #9CA3AF;
+
+  /* Font */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Shadows */
+  --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Base styles */
+html {
+  background-color: #FFF8F0;
+  color: #2C3E5A;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: #FFF8F0;
+  min-height: 100dvh;
+}
+
+/* Safe area insets for mobile */
+:root {
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 999px;
+}
+
+/* Touch targets — min 44px for accessibility */
+button, a, input[type="submit"] {
+  min-height: 44px;
+}
+
+/* Pull-to-refresh styling */
+.pull-to-refresh {
+  overscroll-behavior-y: contain;
+}
+
+/* Crisis mode body lock */
+body.crisis-mode {
+  overflow: hidden;
+}
