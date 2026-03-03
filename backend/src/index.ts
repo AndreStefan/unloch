@@ -55,6 +55,19 @@ app.use('/api/v1/audit', auditRoutes);
 // Crisis detection middleware intercepts message POSTs before the message route handler
 app.use('/api/v1/messages', crisisDetection, messagesRoutes);
 
+// ── Serve Patient App static files in production ──
+import path from 'path';
+if (config.NODE_ENV === 'production') {
+  const patientDist = path.join(__dirname, '../patient-app-dist');
+  app.use(express.static(patientDist));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api/') || req.path.startsWith('/socket.io') || req.path === '/health') {
+      return next();
+    }
+    res.sendFile(path.join(patientDist, 'index.html'));
+  });
+}
+
 // ── Error Handler (must be last) ──
 app.use(errorHandler);
 

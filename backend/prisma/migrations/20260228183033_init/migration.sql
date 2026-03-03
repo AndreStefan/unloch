@@ -1,9 +1,6 @@
 -- CreateExtension
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
--- CreateExtension
-CREATE EXTENSION IF NOT EXISTS "vector" WITH SCHEMA "public";
-
 -- CreateTable
 CREATE TABLE "practices" (
     "id" TEXT NOT NULL,
