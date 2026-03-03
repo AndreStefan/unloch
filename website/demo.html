@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Unloch.me Interactive Demo — Experience the AI-powered therapy companion from both patient and therapist perspectives.">
+  <meta name="theme-color" content="#4F6D7A">
+  <title>Unloch.me — Interactive Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ============================================
+       Unloch.me — Demo Page Styles
+       ============================================ */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --teal-900: #1a3a3a; --teal-800: #234e4e; --teal-700: #2d6363;
+      --teal-600: #3a7d7d; --teal-500: #4a9494; --teal-400: #6bb3b3;
+      --teal-300: #8ecece; --teal-200: #b8e2e2; --teal-100: #daf1f1;
+      --teal-50: #eef9f9;
+      --gold-500: #d4a843; --gold-400: #e0be6a;
+      --gray-900: #1a1a2e; --gray-800: #2d2d44; --gray-700: #44445e;
+      --gray-600: #5e5e78; --gray-500: #7a7a92; --gray-400: #9a9ab0;
+      --gray-300: #bcbcce; --gray-200: #dddde8; --gray-100: #eeeff4;
+      --gray-50: #f7f7fa; --white: #ffffff;
+      --danger: #e54d4d; --success: #3dae72; --warning: #e5a84d;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-display: 'Playfair Display', Georgia, serif;
+      --ease: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body { font-family: var(--font-sans); color: var(--gray-800); background: var(--gray-50); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    a { text-decoration: none; color: inherit; }
+    ul { list-style: none; }
+    button { font-family: var(--font-sans); cursor: pointer; border: none; background: none; }
+    input, textarea, select { font-family: var(--font-sans); }
+
+    /* --- Top Bar --- */
+    .demo-topbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      background: rgba(255,255,255,0.95); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--gray-200);
+      box-shadow: 0 1px 12px rgba(0,0,0,0.06);
+    }
+    .topbar-inner {
+      max-width: 1400px; margin: 0 auto; padding: 0 24px;
+      display: flex; align-items: center; justify-content: space-between; height: 64px;
+    }
+    .topbar-logo {
+      font-size: 1.25rem; font-weight: 700; color: var(--gray-900);
+      display: flex; align-items: center; gap: 4px;
+    }
+    .topbar-logo .accent { color: var(--teal-600); }
+    .topbar-badge {
+      background: var(--teal-100); color: var(--teal-700);
+      font-size: 0.7rem; font-weight: 600; padding: 4px 12px;
+      border-radius: 100px; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .topbar-tabs { display: flex; gap: 4px; }
+    .topbar-tab {
+      padding: 10px 24px; border-radius: 10px; font-size: 0.875rem;
+      font-weight: 600; color: var(--gray-500); transition: all 0.2s var(--ease);
+    }
+    .topbar-tab:hover { color: var(--gray-700); background: var(--gray-50); }
+    .topbar-tab.active { color: var(--teal-700); background: var(--teal-50); }
+    .topbar-back {
+      font-size: 0.85rem; font-weight: 600; color: var(--teal-700);
+      display: flex; align-items: center; gap: 6px; padding: 8px 16px;
+      border-radius: 10px; transition: background 0.2s;
+    }
+    .topbar-back:hover { background: var(--teal-50); }
+
+    /* --- View Containers --- */
+    .demo-view { display: none; padding-top: 64px; min-height: 100vh; }
+    .demo-view.active { display: block; }
+
+    /* =========================================
+       PATIENT VIEW
+       ========================================= */
+    .patient-view { background: var(--gray-100); display: flex; flex-direction: column; align-items: center; }
+    .patient-frame {
+      width: 100%; max-width: 420px; margin: 24px auto;
+      background: var(--gray-900); border-radius: 40px; padding: 14px;
+      box-shadow: 0 24px 80px rgba(26,58,58,0.25), 0 0 0 1px rgba(255,255,255,0.1) inset;
+    }
+    .patient-screen {
+      background: var(--white); border-radius: 28px; overflow: hidden;
+      display: flex; flex-direction: column; height: 680px;
+    }
+
+    /* Patient Nav Tabs */
+    .patient-nav {
+      display: flex; background: var(--white); border-bottom: 1px solid var(--gray-100);
+      padding: 0; flex-shrink: 0;
+    }
+    .patient-nav-tab {
+      flex: 1; padding: 14px 8px 10px; text-align: center; font-size: 0.7rem;
+      font-weight: 600; color: var(--gray-400); border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .patient-nav-tab .tab-icon { font-size: 1.2rem; display: block; margin-bottom: 2px; }
+    .patient-nav-tab.active { color: var(--teal-600); border-bottom-color: var(--teal-600); }
+
+    /* Patient Panels */
+    .patient-panel { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+    .patient-panel.active { display: flex; }
+
+    /* --- Chat Panel --- */
+    .chat-header {
+      padding: 16px 20px; background: var(--teal-700); color: var(--white);
+      display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+    }
+    .chat-avatar {
+      width: 36px; height: 36px; border-radius: 50%; background: var(--teal-500);
+      display: flex; align-items: center; justify-content: center; font-size: 1rem;
+    }
+    .chat-header-info h3 { font-size: 0.95rem; font-weight: 600; }
+    .chat-header-info p { font-size: 0.7rem; opacity: 0.8; }
+    .chat-messages {
+      flex: 1; overflow-y: auto; padding: 20px 16px; display: flex;
+      flex-direction: column; gap: 10px; scroll-behavior: smooth;
+    }
+    .chat-messages::-webkit-scrollbar { width: 4px; }
+    .chat-messages::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 4px; }
+    .chat-msg {
+      max-width: 82%; padding: 12px 16px; border-radius: 18px;
+      font-size: 0.85rem; line-height: 1.55; animation: msgIn 0.3s var(--ease) both;
+    }
+    .chat-msg.ai {
+      background: var(--teal-50); color: var(--gray-800);
+      border-bottom-left-radius: 6px; align-self: flex-start;
+    }
+    .chat-msg.user {
+      background: var(--teal-600); color: var(--white);
+      border-bottom-right-radius: 6px; align-self: flex-end;
+    }
+    .chat-msg.system {
+      background: var(--gray-50); color: var(--gray-500); font-size: 0.78rem;
+      align-self: center; border-radius: 12px; text-align: center; max-width: 90%;
+    }
+    .chat-msg.crisis {
+      background: #fef2f2; color: var(--danger); border: 1px solid #fecaca;
+      align-self: center; text-align: center; max-width: 90%; border-radius: 12px;
+      font-weight: 500;
+    }
+    .typing-indicator {
+      align-self: flex-start; padding: 12px 18px; background: var(--teal-50);
+      border-radius: 18px; border-bottom-left-radius: 6px;
+      display: none; gap: 4px; align-items: center;
+    }
+    .typing-indicator.visible { display: flex; }
+    .typing-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--teal-400);
+      animation: typingBounce 1.4s infinite ease-in-out;
+    }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    .chat-input-bar {
+      padding: 12px 16px; border-top: 1px solid var(--gray-100);
+      display: flex; gap: 10px; align-items: center; flex-shrink: 0;
+      background: var(--white);
+    }
+    .chat-input {
+      flex: 1; padding: 10px 16px; border: 2px solid var(--gray-200);
+      border-radius: 24px; font-size: 0.85rem; outline: none;
+      transition: border-color 0.2s;
+    }
+    .chat-input:focus { border-color: var(--teal-400); }
+    .chat-send {
+      width: 40px; height: 40px; border-radius: 50%; background: var(--teal-600);
+      color: var(--white); display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s; flex-shrink: 0;
+    }
+    .chat-send:hover { background: var(--teal-700); }
+    .chat-send svg { width: 18px; height: 18px; }
+
+    /* Suggested Messages */
+    .chat-suggestions {
+      padding: 0 16px 8px; display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0;
+    }
+    .chat-suggestion {
+      padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 500;
+      background: var(--teal-50); color: var(--teal-700); border: 1px solid var(--teal-200);
+      transition: all 0.2s;
+    }
+    .chat-suggestion:hover { background: var(--teal-100); }
+
+    /* --- Mood Panel --- */
+    .mood-panel-inner {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 32px 24px; text-align: center;
+    }
+    .mood-greeting { font-size: 0.8rem; color: var(--teal-600); font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 24px; }
+    .mood-question { font-size: 1.3rem; font-weight: 700; color: var(--gray-900); margin-bottom: 32px; }
+    .mood-emojis { display: flex; gap: 16px; margin-bottom: 12px; }
+    .mood-btn {
+      width: 56px; height: 56px; border-radius: 50%; font-size: 1.8rem;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--gray-50); border: 2px solid transparent;
+      transition: all 0.2s; opacity: 0.5;
+    }
+    .mood-btn:hover { opacity: 0.8; transform: scale(1.1); }
+    .mood-btn.selected { opacity: 1; transform: scale(1.15); border-color: var(--teal-400);
+      background: var(--teal-50); box-shadow: 0 4px 16px rgba(74,148,148,0.2); }
+    .mood-labels { display: flex; justify-content: space-between; width: 100%;
+      max-width: 320px; margin-bottom: 28px; }
+    .mood-label { font-size: 0.7rem; color: var(--gray-400); }
+    .mood-note {
+      width: 100%; padding: 14px 16px; border: 2px solid var(--gray-200);
+      border-radius: 16px; font-size: 0.85rem; resize: none; height: 80px;
+      outline: none; transition: border-color 0.2s; margin-bottom: 20px;
+    }
+    .mood-note:focus { border-color: var(--teal-400); }
+    .mood-submit {
+      padding: 14px 40px; border-radius: 14px; background: var(--teal-600);
+      color: var(--white); font-size: 0.9rem; font-weight: 600;
+      transition: all 0.2s; opacity: 0.4; pointer-events: none;
+    }
+    .mood-submit.ready { opacity: 1; pointer-events: auto; }
+    .mood-submit.ready:hover { background: var(--teal-700); transform: translateY(-1px); }
+    .mood-result { display: none; text-align: center; }
+    .mood-result h3 { font-size: 1.1rem; color: var(--gray-900); margin-bottom: 8px; }
+    .mood-result p { font-size: 0.85rem; color: var(--gray-500); line-height: 1.6; }
+    .mood-streak {
+      margin-top: 20px; padding: 16px 24px; background: var(--teal-50);
+      border-radius: 14px; display: inline-block;
+    }
+    .mood-streak .streak-num { font-size: 1.5rem; font-weight: 700; color: var(--teal-700); }
+    .mood-streak .streak-label { font-size: 0.75rem; color: var(--teal-600); }
+
+    /* --- Homework Panel --- */
+    .homework-list { padding: 20px 16px; flex: 1; overflow-y: auto; }
+    .homework-header {
+      padding: 20px 20px 12px; font-size: 1rem; font-weight: 700; color: var(--gray-900);
+      border-bottom: 1px solid var(--gray-100);
+    }
+    .hw-card {
+      background: var(--white); border: 1px solid var(--gray-100); border-radius: 16px;
+      padding: 18px; margin-bottom: 12px; transition: all 0.2s;
+    }
+    .hw-card:hover { border-color: var(--teal-200); box-shadow: 0 4px 16px rgba(0,0,0,0.04); }
+    .hw-card.completed { opacity: 0.6; }
+    .hw-card.completed .hw-title { text-decoration: line-through; }
+    .hw-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .hw-title { font-size: 0.9rem; font-weight: 600; color: var(--gray-900); }
+    .hw-badge {
+      font-size: 0.65rem; font-weight: 600; padding: 3px 10px;
+      border-radius: 100px; text-transform: uppercase; flex-shrink: 0;
+    }
+    .hw-badge.cbt { background: #ede9fe; color: #7c3aed; }
+    .hw-badge.mindfulness { background: #ecfdf5; color: #059669; }
+    .hw-badge.journal { background: #fef3c7; color: #d97706; }
+    .hw-desc { font-size: 0.8rem; color: var(--gray-500); line-height: 1.5; margin-bottom: 10px; }
+    .hw-check {
+      display: flex; align-items: center; gap: 8px; font-size: 0.78rem;
+      font-weight: 500; color: var(--teal-600); cursor: pointer;
+    }
+    .hw-checkbox {
+      width: 20px; height: 20px; border: 2px solid var(--gray-300); border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s; flex-shrink: 0;
+    }
+    .hw-card.completed .hw-checkbox { background: var(--teal-600); border-color: var(--teal-600); color: var(--white); }
+
+    /* --- Transparency Panel --- */
+    .transparency-inner { padding: 20px 16px; flex: 1; overflow-y: auto; }
+    .transparency-header {
+      padding: 20px 20px 12px; font-size: 1rem; font-weight: 700; color: var(--gray-900);
+      border-bottom: 1px solid var(--gray-100);
+    }
+    .transparency-header p { font-size: 0.8rem; color: var(--gray-500); font-weight: 400; margin-top: 4px; }
+    .tx-card {
+      background: var(--white); border: 1px solid var(--gray-100); border-radius: 14px;
+      padding: 16px; margin-bottom: 10px;
+    }
+    .tx-time { font-size: 0.7rem; color: var(--gray-400); margin-bottom: 6px; }
+    .tx-msg { font-size: 0.82rem; color: var(--gray-700); margin-bottom: 10px; font-style: italic; }
+    .tx-reason { font-size: 0.78rem; padding: 10px 14px; background: var(--teal-50);
+      border-radius: 10px; color: var(--teal-800); line-height: 1.5; }
+    .tx-reason strong { display: block; font-size: 0.7rem; color: var(--teal-600);
+      text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 4px; }
+
+    /* =========================================
+       THERAPIST VIEW
+       ========================================= */
+    .therapist-view { background: var(--gray-50); }
+    .therapist-layout {
+      display: flex; min-height: calc(100vh - 64px);
+    }
+    .therapist-sidebar {
+      width: 240px; background: var(--gray-900); color: var(--gray-400);
+      padding: 24px 0; flex-shrink: 0;
+    }
+    .sidebar-section { padding: 0 16px; margin-bottom: 28px; }
+    .sidebar-label {
+      font-size: 0.65rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--gray-500); padding: 0 16px; margin-bottom: 8px;
+    }
+    .sidebar-link {
+      display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+      font-size: 0.85rem; color: var(--gray-400); border-radius: 8px;
+      transition: all 0.15s; cursor: pointer; margin: 0 8px;
+    }
+    .sidebar-link:hover { color: var(--white); background: rgba(255,255,255,0.05); }
+    .sidebar-link.active {
+      color: var(--white); background: rgba(255,255,255,0.08);
+      border-left: 2px solid var(--teal-400);
+    }
+    .sidebar-link .link-icon { font-size: 1rem; width: 24px; text-align: center; }
+    .sidebar-link .link-badge {
+      margin-left: auto; background: var(--danger); color: var(--white);
+      font-size: 0.65rem; font-weight: 700; padding: 2px 7px; border-radius: 100px;
+    }
+    .therapist-main { flex: 1; padding: 28px 32px; overflow-y: auto; }
+
+    /* Dashboard Panels */
+    .dash-panel { display: none; }
+    .dash-panel.active { display: block; }
+
+    /* --- Patients List --- */
+    .dash-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .dash-title { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; color: var(--gray-900); }
+    .dash-subtitle { font-size: 0.9rem; color: var(--gray-500); margin-top: 4px; }
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+    .stat-card {
+      background: var(--white); border-radius: 16px; padding: 20px;
+      border: 1px solid var(--gray-100);
+    }
+    .stat-card .stat-value { font-size: 1.8rem; font-weight: 700; color: var(--gray-900); }
+    .stat-card .stat-label { font-size: 0.78rem; color: var(--gray-500); margin-top: 4px; }
+    .stat-card .stat-change { font-size: 0.72rem; font-weight: 600; margin-top: 6px; }
+    .stat-card .stat-change.up { color: var(--success); }
+    .stat-card .stat-change.down { color: var(--danger); }
+
+    .patient-table { width: 100%; background: var(--white); border-radius: 16px;
+      border: 1px solid var(--gray-100); overflow: hidden; }
+    .patient-table th {
+      text-align: left; padding: 14px 20px; font-size: 0.75rem; font-weight: 600;
+      color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em;
+      background: var(--gray-50); border-bottom: 1px solid var(--gray-100);
+    }
+    .patient-table td { padding: 16px 20px; font-size: 0.875rem; border-bottom: 1px solid var(--gray-50); }
+    .patient-table tr:last-child td { border-bottom: none; }
+    .patient-table tbody tr { cursor: pointer; transition: background 0.15s; }
+    .patient-table tbody tr:hover { background: var(--teal-50); }
+    .patient-name-cell { display: flex; align-items: center; gap: 12px; }
+    .patient-avatar {
+      width: 36px; height: 36px; border-radius: 50%; display: flex;
+      align-items: center; justify-content: center; font-size: 0.85rem;
+      font-weight: 600; color: var(--white); flex-shrink: 0;
+    }
+    .patient-name { font-weight: 600; color: var(--gray-900); }
+    .patient-sub { font-size: 0.75rem; color: var(--gray-500); }
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 5px; font-size: 0.75rem;
+      font-weight: 500; padding: 4px 12px; border-radius: 100px;
+    }
+    .status-badge .dot { width: 6px; height: 6px; border-radius: 50%; }
+    .status-badge.active { background: #ecfdf5; color: #059669; }
+    .status-badge.active .dot { background: #059669; }
+    .status-badge.flagged { background: #fef2f2; color: var(--danger); }
+    .status-badge.flagged .dot { background: var(--danger); }
+    .status-badge.idle { background: var(--gray-50); color: var(--gray-500); }
+    .status-badge.idle .dot { background: var(--gray-400); }
+    .mood-indicator { display: flex; gap: 3px; align-items: center; }
+    .mood-bar { width: 18px; height: 8px; border-radius: 4px; }
+
+    /* --- Patient Detail --- */
+    .detail-back {
+      display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem;
+      font-weight: 500; color: var(--gray-500); margin-bottom: 20px; cursor: pointer;
+      transition: color 0.2s;
+    }
+    .detail-back:hover { color: var(--teal-700); }
+    .detail-header {
+      display: flex; align-items: center; gap: 16px; margin-bottom: 28px;
+    }
+    .detail-avatar {
+      width: 56px; height: 56px; border-radius: 50%; font-size: 1.3rem;
+      font-weight: 600; color: var(--white); display: flex;
+      align-items: center; justify-content: center;
+    }
+    .detail-name { font-size: 1.4rem; font-weight: 700; color: var(--gray-900); }
+    .detail-meta { font-size: 0.82rem; color: var(--gray-500); }
+    .detail-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+    .detail-card {
+      background: var(--white); border-radius: 16px; border: 1px solid var(--gray-100);
+      padding: 24px; margin-bottom: 20px;
+    }
+    .detail-card h3 { font-size: 1rem; font-weight: 600; color: var(--gray-900); margin-bottom: 16px; }
+    .briefing-item { padding: 12px 0; border-bottom: 1px solid var(--gray-50); }
+    .briefing-item:last-child { border-bottom: none; }
+    .briefing-label { font-size: 0.72rem; font-weight: 600; color: var(--teal-600);
+      text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+    .briefing-text { font-size: 0.85rem; color: var(--gray-700); line-height: 1.6; }
+
+    /* Mood chart simulation */
+    .mood-chart {
+      display: flex; align-items: flex-end; gap: 8px; height: 120px;
+      padding: 12px 0; border-bottom: 1px solid var(--gray-100);
+    }
+    .mood-chart-bar {
+      flex: 1; border-radius: 6px 6px 0 0; transition: height 0.5s var(--ease);
+      min-height: 8px; position: relative;
+    }
+    .mood-chart-bar .bar-label {
+      position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%);
+      font-size: 0.6rem; color: var(--gray-400); white-space: nowrap;
+    }
+    .chart-labels { display: flex; gap: 8px; padding-top: 24px; }
+
+    /* --- Rules Panel --- */
+    .rules-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .rule-card {
+      background: var(--white); border-radius: 16px; border: 1px solid var(--gray-100);
+      padding: 20px; transition: all 0.2s;
+    }
+    .rule-card:hover { border-color: var(--teal-200); box-shadow: 0 4px 16px rgba(0,0,0,0.04); }
+    .rule-type {
+      font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.05em; margin-bottom: 8px; display: inline-block;
+      padding: 3px 10px; border-radius: 100px;
+    }
+    .rule-type.directive { background: #ede9fe; color: #7c3aed; }
+    .rule-type.boundary { background: #fef2f2; color: var(--danger); }
+    .rule-type.exercise { background: #ecfdf5; color: #059669; }
+    .rule-type.trigger { background: #fef3c7; color: #d97706; }
+    .rule-title { font-size: 0.95rem; font-weight: 600; color: var(--gray-900); margin-bottom: 6px; }
+    .rule-desc { font-size: 0.82rem; color: var(--gray-500); line-height: 1.5; }
+    .rule-patients { font-size: 0.72rem; color: var(--gray-400); margin-top: 10px; }
+
+    /* --- Alerts Panel --- */
+    .alert-card {
+      background: var(--white); border-radius: 16px; border: 1px solid var(--gray-100);
+      padding: 20px; margin-bottom: 12px; display: flex; gap: 14px;
+      transition: all 0.2s;
+    }
+    .alert-card:hover { border-color: var(--teal-200); }
+    .alert-card.critical { border-left: 3px solid var(--danger); }
+    .alert-card.warning { border-left: 3px solid var(--warning); }
+    .alert-card.info { border-left: 3px solid var(--teal-500); }
+    .alert-icon {
+      width: 40px; height: 40px; border-radius: 12px; display: flex;
+      align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;
+    }
+    .alert-card.critical .alert-icon { background: #fef2f2; }
+    .alert-card.warning .alert-icon { background: #fef3c7; }
+    .alert-card.info .alert-icon { background: var(--teal-50); }
+    .alert-body { flex: 1; }
+    .alert-title { font-size: 0.9rem; font-weight: 600; color: var(--gray-900); margin-bottom: 4px; }
+    .alert-desc { font-size: 0.82rem; color: var(--gray-500); line-height: 1.5; }
+    .alert-time { font-size: 0.72rem; color: var(--gray-400); margin-top: 6px; }
+
+    /* --- Animations --- */
+    @keyframes msgIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes typingBounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-6px); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulseAlert {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(229,77,77,0.3); }
+      50% { box-shadow: 0 0 0 8px rgba(229,77,77,0); }
+    }
+
+    /* --- Responsive --- */
+    @media (max-width: 1024px) {
+      .therapist-sidebar { width: 200px; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .detail-grid { grid-template-columns: 1fr; }
+      .rules-list { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      .topbar-tabs { gap: 0; }
+      .topbar-tab { padding: 10px 14px; font-size: 0.8rem; }
+      .topbar-badge { display: none; }
+      .therapist-sidebar { display: none; }
+      .therapist-main { padding: 20px 16px; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .patient-table th:nth-child(4), .patient-table td:nth-child(4) { display: none; }
+      .patient-frame { margin: 12px 8px; }
+    }
+    @media (max-width: 480px) {
+      .patient-frame { border-radius: 0; padding: 0; }
+      .patient-screen { border-radius: 0; height: calc(100vh - 64px); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <div class="demo-topbar">
+    <div class="topbar-inner">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <a href="index.html" class="topbar-logo">&#x1f513; unloch<span class="accent">.me</span></a>
+        <span class="topbar-badge">Interactive Demo</span>
+      </div>
+      <div class="topbar-tabs">
+        <button class="topbar-tab active" data-view="patient">Patient App</button>
+        <button class="topbar-tab" data-view="therapist">Therapist Dashboard</button>
+      </div>
+      <a href="index.html" class="topbar-back">&larr; Back to site</a>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       PATIENT VIEW
+       ========================================== -->
+  <div class="demo-view patient-view active" id="patient-view">
+    <div class="patient-frame">
+      <div class="patient-screen">
+
+        <!-- Patient Bottom Nav -->
+        <div class="patient-nav">
+          <button class="patient-nav-tab active" data-panel="chat">
+            <span class="tab-icon">&#x1f4ac;</span> Chat
+          </button>
+          <button class="patient-nav-tab" data-panel="mood">
+            <span class="tab-icon">&#x1f60a;</span> Mood
+          </button>
+          <button class="patient-nav-tab" data-panel="homework">
+            <span class="tab-icon">&#x1f4cb;</span> Exercises
+          </button>
+          <button class="patient-nav-tab" data-panel="transparency">
+            <span class="tab-icon">&#x1f50d;</span> Why?
+          </button>
+        </div>
+
+        <!-- Chat Panel -->
+        <div class="patient-panel active" id="panel-chat">
+          <div class="chat-header">
+            <div class="chat-avatar">&#x1f331;</div>
+            <div class="chat-header-info">
+              <h3>Unloch Companion</h3>
+              <p>Guided by Dr. Sarah Chen</p>
+            </div>
+          </div>
+          <div class="chat-messages" id="chat-messages">
+            <div class="chat-msg system">Your therapist Dr. Chen has updated your treatment plan. The AI companion is ready to help you practice this week's skills.</div>
+            <div class="chat-msg ai">Hi! I hope you're having an okay day. Dr. Chen mentioned you've been working on grounding techniques this week. How are you feeling right now?</div>
+          </div>
+          <div class="typing-indicator" id="typing-indicator">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+          </div>
+          <div class="chat-suggestions" id="chat-suggestions">
+            <button class="chat-suggestion" data-msg="I've been feeling anxious today">I've been feeling anxious today</button>
+            <button class="chat-suggestion" data-msg="Can we practice a grounding exercise?">Practice grounding</button>
+            <button class="chat-suggestion" data-msg="I had a really good day actually!">I had a good day!</button>
+          </div>
+          <div class="chat-input-bar">
+            <input type="text" class="chat-input" id="chat-input" placeholder="Type a message..." autocomplete="off">
+            <button class="chat-send" id="chat-send">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Mood Panel -->
+        <div class="patient-panel" id="panel-mood">
+          <div class="mood-panel-inner" id="mood-form">
+            <p class="mood-greeting">Daily Check-in</p>
+            <p class="mood-question">How are you feeling<br>right now?</p>
+            <div class="mood-emojis">
+              <button class="mood-btn" data-mood="5" title="Great">&#x1f60a;</button>
+              <button class="mood-btn" data-mood="4" title="Good">&#x1f642;</button>
+              <button class="mood-btn" data-mood="3" title="Okay">&#x1f610;</button>
+              <button class="mood-btn" data-mood="2" title="Low">&#x1f61f;</button>
+              <button class="mood-btn" data-mood="1" title="Struggling">&#x1f622;</button>
+            </div>
+            <div class="mood-labels">
+              <span class="mood-label">Great</span>
+              <span class="mood-label">Struggling</span>
+            </div>
+            <textarea class="mood-note" placeholder="Want to add a note? (optional)"></textarea>
+            <button class="mood-submit" id="mood-submit">Log My Mood</button>
+          </div>
+          <div class="mood-result" id="mood-result">
+            <p style="font-size:2.5rem;margin-bottom:12px;">&#x2705;</p>
+            <h3>Check-in logged!</h3>
+            <p>Dr. Chen will see this in your between-session summary. Keep it up!</p>
+            <div class="mood-streak">
+              <div class="streak-num">5</div>
+              <div class="streak-label">day streak</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Homework Panel -->
+        <div class="patient-panel" id="panel-homework">
+          <div class="homework-header">This Week's Exercises</div>
+          <div class="homework-list">
+            <div class="hw-card" data-hw="1">
+              <div class="hw-top">
+                <div class="hw-title">5-4-3-2-1 Grounding</div>
+                <span class="hw-badge mindfulness">Mindfulness</span>
+              </div>
+              <div class="hw-desc">When you notice anxiety rising, identify 5 things you see, 4 you hear, 3 you touch, 2 you smell, and 1 you taste.</div>
+              <div class="hw-check"><div class="hw-checkbox"></div> Mark as completed</div>
+            </div>
+            <div class="hw-card" data-hw="2">
+              <div class="hw-top">
+                <div class="hw-title">Thought Record</div>
+                <span class="hw-badge cbt">CBT</span>
+              </div>
+              <div class="hw-desc">Write down one automatic negative thought this week. Identify the cognitive distortion and create an alternative balanced thought.</div>
+              <div class="hw-check"><div class="hw-checkbox"></div> Mark as completed</div>
+            </div>
+            <div class="hw-card" data-hw="3">
+              <div class="hw-top">
+                <div class="hw-title">Gratitude Journal</div>
+                <span class="hw-badge journal">Journal</span>
+              </div>
+              <div class="hw-desc">Each evening, write down 3 things you're grateful for. They can be small — the warmth of coffee, a kind word, sunshine.</div>
+              <div class="hw-check"><div class="hw-checkbox"></div> Mark as completed</div>
+            </div>
+            <div class="hw-card completed" data-hw="4">
+              <div class="hw-top">
+                <div class="hw-title">Progressive Muscle Relaxation</div>
+                <span class="hw-badge mindfulness">Mindfulness</span>
+              </div>
+              <div class="hw-desc">Tense and release each muscle group for 5 seconds. Start from your toes and work up to your head.</div>
+              <div class="hw-check"><div class="hw-checkbox">&#x2713;</div> Completed</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Transparency Panel -->
+        <div class="patient-panel" id="panel-transparency">
+          <div class="transparency-header">
+            Why did the AI say that?
+            <p>Full transparency on every response</p>
+          </div>
+          <div class="transparency-inner">
+            <div class="tx-card">
+              <div class="tx-time">Today, 2:34 PM</div>
+              <div class="tx-msg">"Let's try the 5-4-3-2-1 technique Dr. Chen recommended."</div>
+              <div class="tx-reason">
+                <strong>Reasoning</strong>
+                This response was guided by <b>Rule #12: Grounding Techniques</b> set by Dr. Chen on Feb 28. When you mention anxiety, the companion is directed to offer the 5-4-3-2-1 grounding exercise from your treatment plan.
+              </div>
+            </div>
+            <div class="tx-card">
+              <div class="tx-time">Today, 2:30 PM</div>
+              <div class="tx-msg">"How are you feeling right now?"</div>
+              <div class="tx-reason">
+                <strong>Reasoning</strong>
+                Standard opening guided by <b>Rule #1: Session Opener</b>. Dr. Chen configured the companion to start conversations with an open-ended emotional check-in.
+              </div>
+            </div>
+            <div class="tx-card">
+              <div class="tx-time">Yesterday, 6:15 PM</div>
+              <div class="tx-msg">"That sounds like catastrophizing. Let's examine the evidence."</div>
+              <div class="tx-reason">
+                <strong>Reasoning</strong>
+                Triggered by <b>Rule #8: Cognitive Distortion Detection</b>. Your message contained language patterns matching catastrophizing. Dr. Chen's treatment plan includes CBT-based cognitive restructuring.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       THERAPIST VIEW
+       ========================================== -->
+  <div class="demo-view therapist-view" id="therapist-view">
+    <div class="therapist-layout">
+
+      <!-- Sidebar -->
+      <div class="therapist-sidebar">
+        <div style="padding:0 24px 28px;"><span class="topbar-logo" style="color:#fff;font-size:1.1rem;">&#x1f513; unloch<span class="accent">.me</span></span></div>
+        <div class="sidebar-label">Main</div>
+        <div class="sidebar-section">
+          <div class="sidebar-link active" data-dash="patients">
+            <span class="link-icon">&#x1f465;</span> Patients
+          </div>
+          <div class="sidebar-link" data-dash="rules">
+            <span class="link-icon">&#x1f4cb;</span> Rules
+          </div>
+          <div class="sidebar-link" data-dash="alerts">
+            <span class="link-icon">&#x1f514;</span> Alerts
+            <span class="link-badge">3</span>
+          </div>
+        </div>
+        <div class="sidebar-label">Account</div>
+        <div class="sidebar-section">
+          <div class="sidebar-link"><span class="link-icon">&#x2699;&#xfe0f;</span> Settings</div>
+          <div class="sidebar-link"><span class="link-icon">&#x1f512;</span> Audit Log</div>
+        </div>
+        <div style="padding:24px;margin-top:auto;border-top:1px solid rgba(255,255,255,0.06);">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:32px;height:32px;border-radius:50%;background:var(--teal-600);display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.8rem;font-weight:600;">SC</div>
+            <div>
+              <div style="color:#fff;font-size:0.82rem;font-weight:600;">Dr. Sarah Chen</div>
+              <div style="color:var(--gray-500);font-size:0.7rem;">Licensed Psychologist</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="therapist-main">
+
+        <!-- Patients Panel -->
+        <div class="dash-panel active" id="dash-patients">
+          <div class="dash-header">
+            <div>
+              <div class="dash-title">Patients</div>
+              <div class="dash-subtitle">Between-session overview for your active caseload</div>
+            </div>
+          </div>
+          <div class="stats-row">
+            <div class="stat-card">
+              <div class="stat-value">12</div>
+              <div class="stat-label">Active Patients</div>
+              <div class="stat-change up">&#x2191; 2 this month</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">47</div>
+              <div class="stat-label">Check-ins This Week</div>
+              <div class="stat-change up">&#x2191; 18% from last week</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">1</div>
+              <div class="stat-label">Crisis Flags</div>
+              <div class="stat-change down">Requires attention</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">89%</div>
+              <div class="stat-label">Exercise Completion</div>
+              <div class="stat-change up">&#x2191; 5% from last week</div>
+            </div>
+          </div>
+          <table class="patient-table">
+            <thead>
+              <tr>
+                <th>Patient</th>
+                <th>Status</th>
+                <th>Mood Trend</th>
+                <th>Last Activity</th>
+                <th>Check-ins</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr data-patient="alex">
+                <td><div class="patient-name-cell"><div class="patient-avatar" style="background:var(--teal-600);">AM</div><div><div class="patient-name">Alex Martinez</div><div class="patient-sub">GAD, Social Anxiety</div></div></div></td>
+                <td><span class="status-badge active"><span class="dot"></span> Active</span></td>
+                <td><div class="mood-indicator"><div class="mood-bar" style="height:8px;background:var(--warning);"></div><div class="mood-bar" style="height:8px;background:var(--teal-400);"></div><div class="mood-bar" style="height:8px;background:var(--teal-400);"></div><div class="mood-bar" style="height:8px;background:var(--success);"></div><div class="mood-bar" style="height:8px;background:var(--success);"></div></div></td>
+                <td style="color:var(--gray-500);font-size:0.82rem;">2 hours ago</td>
+                <td style="font-weight:600;">7</td>
+              </tr>
+              <tr data-patient="jordan">
+                <td><div class="patient-name-cell"><div class="patient-avatar" style="background:var(--danger);">JK</div><div><div class="patient-name">Jordan Kim</div><div class="patient-sub">MDD, PTSD</div></div></div></td>
+                <td><span class="status-badge flagged"><span class="dot"></span> Flagged</span></td>
+                <td><div class="mood-indicator"><div class="mood-bar" style="height:8px;background:var(--teal-400);"></div><div class="mood-bar" style="height:8px;background:var(--warning);"></div><div class="mood-bar" style="height:8px;background:var(--warning);"></div><div class="mood-bar" style="height:8px;background:var(--danger);"></div><div class="mood-bar" style="height:8px;background:var(--danger);"></div></div></td>
+                <td style="color:var(--gray-500);font-size:0.82rem;">45 min ago</td>
+                <td style="font-weight:600;">3</td>
+              </tr>
+              <tr data-patient="sam">
+                <td><div class="patient-name-cell"><div class="patient-avatar" style="background:var(--gold-500);">SR</div><div><div class="patient-name">Sam Rivera</div><div class="patient-sub">Adjustment Disorder</div></div></div></td>
+                <td><span class="status-badge active"><span class="dot"></span> Active</span></td>
+                <td><div class="mood-indicator"><div class="mood-bar" style="height:8px;background:var(--warning);"></div><div class="mood-bar" style="height:8px;background:var(--warning);"></div><div class="mood-bar" style="height:8px;background:var(--teal-400);"></div><div class="mood-bar" style="height:8px;background:var(--teal-400);"></div><div class="mood-bar" style="height:8px;background:var(--teal-400);"></div></div></td>
+                <td style="color:var(--gray-500);font-size:0.82rem;">Yesterday</td>
+                <td style="font-weight:600;">5</td>
+              </tr>
+              <tr data-patient="casey">
+                <td><div class="patient-name-cell"><div class="patient-avatar" style="background:var(--gray-500);">CT</div><div><div class="patient-name">Casey Taylor</div><div class="patient-sub">Panic Disorder</div></div></div></td>
+                <td><span class="status-badge idle"><span class="dot"></span> Idle</span></td>
+                <td><div class="mood-indicator"><div class="mood-bar" style="height:8px;background:var(--gray-300);"></div><div class="mood-bar" style="height:8px;background:var(--gray-300);"></div><div class="mood-bar" style="height:8px;background:var(--gray-300);"></div><div class="mood-bar" style="height:8px;background:var(--gray-300);"></div><div class="mood-bar" style="height:8px;background:var(--gray-300);"></div></div></td>
+                <td style="color:var(--gray-500);font-size:0.82rem;">5 days ago</td>
+                <td style="font-weight:600;">1</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Patient Detail Panel -->
+        <div class="dash-panel" id="dash-patient-detail"></div>
+
+        <!-- Rules Panel -->
+        <div class="dash-panel" id="dash-rules">
+          <div class="dash-header">
+            <div>
+              <div class="dash-title">Rule Library</div>
+              <div class="dash-subtitle">Clinical rules that guide AI responses for your patients</div>
+            </div>
+          </div>
+          <div class="rules-list">
+            <div class="rule-card">
+              <span class="rule-type directive">Directive</span>
+              <div class="rule-title">Grounding Techniques First</div>
+              <div class="rule-desc">When a patient reports acute anxiety, always suggest a grounding exercise before exploring the triggering thought.</div>
+              <div class="rule-patients">Applied to: Alex M., Sam R., Casey T.</div>
+            </div>
+            <div class="rule-card">
+              <span class="rule-type boundary">Boundary</span>
+              <div class="rule-title">No Diagnostic Language</div>
+              <div class="rule-desc">Never use diagnostic terminology (e.g. "you have depression") or make clinical assessments. Redirect to the therapist for such questions.</div>
+              <div class="rule-patients">Applied to: All patients</div>
+            </div>
+            <div class="rule-card">
+              <span class="rule-type exercise">Exercise</span>
+              <div class="rule-title">CBT Thought Records</div>
+              <div class="rule-desc">Guide patients through identifying automatic thoughts, evidence for/against, and formulating balanced alternatives.</div>
+              <div class="rule-patients">Applied to: Alex M., Jordan K.</div>
+            </div>
+            <div class="rule-card">
+              <span class="rule-type trigger">Trigger</span>
+              <div class="rule-title">Sleep Pattern Monitoring</div>
+              <div class="rule-desc">When a patient mentions poor sleep 3+ times in a week, flag for therapist review and suggest sleep hygiene resources.</div>
+              <div class="rule-patients">Applied to: Jordan K., Casey T.</div>
+            </div>
+            <div class="rule-card">
+              <span class="rule-type directive">Directive</span>
+              <div class="rule-title">Validate Before Redirect</div>
+              <div class="rule-desc">Always acknowledge and validate the patient's feelings before suggesting any coping technique or exercise.</div>
+              <div class="rule-patients">Applied to: All patients</div>
+            </div>
+            <div class="rule-card">
+              <span class="rule-type boundary">Boundary</span>
+              <div class="rule-title">Medication Discussions</div>
+              <div class="rule-desc">Do not discuss medication changes, dosing, or side effects. Direct all medication questions to the prescribing physician.</div>
+              <div class="rule-patients">Applied to: All patients</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alerts Panel -->
+        <div class="dash-panel" id="dash-alerts">
+          <div class="dash-header">
+            <div>
+              <div class="dash-title">Alerts</div>
+              <div class="dash-subtitle">Crisis flags, mood shifts, and notable events</div>
+            </div>
+          </div>
+          <div class="alert-card critical" style="animation: pulseAlert 2s infinite;">
+            <div class="alert-icon">&#x1f6a8;</div>
+            <div class="alert-body">
+              <div class="alert-title">Crisis Flag — Jordan Kim</div>
+              <div class="alert-desc">Patient expressed hopelessness and passive suicidal ideation. Crisis protocol was triggered. Patient was shown crisis resources (988 Lifeline) and encouraged to reach out to their support system.</div>
+              <div class="alert-time">45 minutes ago &middot; Auto-escalated</div>
+            </div>
+          </div>
+          <div class="alert-card warning">
+            <div class="alert-icon">&#x1f4c9;</div>
+            <div class="alert-body">
+              <div class="alert-title">Declining Mood Trend — Jordan Kim</div>
+              <div class="alert-desc">Mood scores have declined for 4 consecutive days (4 &rarr; 3 &rarr; 2 &rarr; 1). This pattern triggered the threshold alert configured in Rule #15.</div>
+              <div class="alert-time">2 hours ago</div>
+            </div>
+          </div>
+          <div class="alert-card info">
+            <div class="alert-icon">&#x2705;</div>
+            <div class="alert-body">
+              <div class="alert-title">Exercise Milestone — Alex Martinez</div>
+              <div class="alert-desc">Patient completed all assigned exercises for this week, including 5-4-3-2-1 grounding (3x), thought record (1x), and gratitude journal (5x).</div>
+              <div class="alert-time">3 hours ago</div>
+            </div>
+          </div>
+          <div class="alert-card info">
+            <div class="alert-icon">&#x1f4c8;</div>
+            <div class="alert-body">
+              <div class="alert-title">Improving Mood — Sam Rivera</div>
+              <div class="alert-desc">Mood has improved from average 2.5 to 3.8 over the past week. Patient mentioned feeling "more in control" in their last check-in.</div>
+              <div class="alert-time">Yesterday</div>
+            </div>
+          </div>
+          <div class="alert-card warning">
+            <div class="alert-icon">&#x1f634;</div>
+            <div class="alert-body">
+              <div class="alert-title">Sleep Pattern Alert — Casey Taylor</div>
+              <div class="alert-desc">Patient mentioned poor sleep in 3 of their last 4 conversations, triggering the sleep monitoring rule. Last mention: "I haven't slept well in days."</div>
+              <div class="alert-time">2 days ago</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function() {
+    'use strict';
+
+    // =========================================
+    // View Switching (Patient / Therapist)
+    // =========================================
+    var viewTabs = document.querySelectorAll('.topbar-tab');
+    var views = document.querySelectorAll('.demo-view');
+
+    viewTabs.forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        viewTabs.forEach(function(t) { t.classList.remove('active'); });
+        views.forEach(function(v) { v.classList.remove('active'); });
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.view + '-view').classList.add('active');
+      });
+    });
+
+    // =========================================
+    // Patient Nav Tabs
+    // =========================================
+    var patientTabs = document.querySelectorAll('.patient-nav-tab');
+    var patientPanels = document.querySelectorAll('.patient-panel');
+
+    patientTabs.forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        patientTabs.forEach(function(t) { t.classList.remove('active'); });
+        patientPanels.forEach(function(p) { p.classList.remove('active'); });
+        tab.classList.add('active');
+        document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
+      });
+    });
+
+    // =========================================
+    // Chat Simulator
+    // =========================================
+    var chatMessages = document.getElementById('chat-messages');
+    var chatInput = document.getElementById('chat-input');
+    var chatSend = document.getElementById('chat-send');
+    var typingIndicator = document.getElementById('typing-indicator');
+    var suggestions = document.getElementById('chat-suggestions');
+    var conversationStep = 0;
+
+    // Pre-scripted responses keyed on conversation flow
+    var conversationFlows = {
+      anxious: [
+        "I hear you. Anxiety can feel really overwhelming. Dr. Chen noted that grounding techniques have been helpful for you. Would you like to try the 5-4-3-2-1 exercise together?",
+        "Great. Let's start. Look around and tell me: what are **5 things you can see** right now? Take your time.",
+        "Those are perfect. You're doing really well. Now, what are **4 things you can hear**? Listen closely — even subtle sounds count.",
+        "Wonderful. Notice how you're becoming more present? Now: **3 things you can physically feel** right now — the texture of your clothes, the chair beneath you, anything.",
+        "You're doing amazingly. Two more senses to go. This kind of practice builds your grounding muscle over time. Dr. Chen will be able to see your progress with this exercise. Want to keep going, or would you like to talk about what triggered the anxiety?"
+      ],
+      grounding: [
+        "Absolutely! Let's do a quick grounding exercise. Dr. Chen has the 5-4-3-2-1 technique in your treatment plan. Here's how it works:",
+        "Start by taking a slow, deep breath. Now, look around and name **5 things you can see**. They can be anything — a window, a cup, the color of the wall.",
+        "Nice work. Now close your eyes for a moment and name **4 things you can hear**. Really listen — maybe there's a fan humming, birds outside, or the sound of your own breathing.",
+        "Beautiful. You're anchoring yourself in the present. **3 things you can touch** — feel the textures around you. The smoothness of your phone, the fabric of your sleeve.",
+        "Almost there! **2 things you can smell** and **1 thing you can taste**. Take your time with this last part. How are you feeling compared to when we started?"
+      ],
+      good: [
+        "That's wonderful to hear! What made today a good day?",
+        "I love that. Noticing and savoring positive moments is actually a therapeutic skill — it's called \"positive data logging\" in CBT. Dr. Chen would be glad to hear this!",
+        "Would you like to add this to your gratitude journal for today? Or just enjoy the moment — both are perfectly fine.",
+        "Remember, you can always come back here whenever you want to talk, practice skills, or just check in. Have a great rest of your day!"
+      ],
+      crisis: [
+        null // handled specially
+      ]
+    };
+
+    var currentFlow = null;
+
+    function addMessage(text, type) {
+      var msg = document.createElement('div');
+      msg.className = 'chat-msg ' + type;
+      msg.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      chatMessages.appendChild(msg);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function showTyping() {
+      typingIndicator.classList.add('visible');
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function hideTyping() {
+      typingIndicator.classList.remove('visible');
+    }
+
+    function detectCrisis(text) {
+      var crisisTerms = ['kill myself', 'want to die', 'suicide', 'end it all', 'no reason to live', 'better off dead'];
+      var lower = text.toLowerCase();
+      for (var i = 0; i < crisisTerms.length; i++) {
+        if (lower.indexOf(crisisTerms[i]) !== -1) return true;
+      }
+      return false;
+    }
+
+    function handleCrisisResponse() {
+      showTyping();
+      setTimeout(function() {
+        hideTyping();
+        addMessage(
+          "&#x1f6a8; <strong>Crisis resources have been activated.</strong><br><br>" +
+          "I care about your safety. If you're having thoughts of suicide, please reach out now:<br><br>" +
+          "&#x1f4de; <strong>988 Suicide &amp; Crisis Lifeline</strong> — Call or text 988<br>" +
+          "&#x1f4ac; <strong>Crisis Text Line</strong> — Text HOME to 741741<br><br>" +
+          "Dr. Chen has been notified. You are not alone.",
+          'crisis'
+        );
+        addMessage(
+          "Your safety is the highest priority. Dr. Chen will follow up with you directly. " +
+          "In the meantime, is there someone you trust — a friend, family member, or another support person — you could reach out to right now?",
+          'ai'
+        );
+      }, 1500);
+    }
+
+    function detectFlow(text) {
+      var lower = text.toLowerCase();
+      if (lower.indexOf('anxious') !== -1 || lower.indexOf('anxiety') !== -1 || lower.indexOf('worried') !== -1 || lower.indexOf('nervous') !== -1 || lower.indexOf('stressed') !== -1) return 'anxious';
+      if (lower.indexOf('grounding') !== -1 || lower.indexOf('exercise') !== -1 || lower.indexOf('practice') !== -1) return 'grounding';
+      if (lower.indexOf('good') !== -1 || lower.indexOf('great') !== -1 || lower.indexOf('happy') !== -1 || lower.indexOf('wonderful') !== -1 || lower.indexOf('better') !== -1) return 'good';
+      return null;
+    }
+
+    function getNextResponse(userText) {
+      if (!currentFlow) {
+        var detectedFlow = detectFlow(userText);
+        if (detectedFlow && conversationFlows[detectedFlow]) {
+          currentFlow = detectedFlow;
+          conversationStep = 0;
+        }
+      }
+
+      if (currentFlow && conversationFlows[currentFlow] && conversationStep < conversationFlows[currentFlow].length) {
+        var response = conversationFlows[currentFlow][conversationStep];
+        conversationStep++;
+        return response;
+      }
+
+      // Fallback responses
+      var fallbacks = [
+        "Thank you for sharing that with me. Dr. Chen's treatment plan emphasizes validating your experiences. Can you tell me more about what's on your mind?",
+        "I appreciate you opening up. Based on your treatment plan, would you like to try one of the coping techniques Dr. Chen recommended, or would you prefer to just talk?",
+        "That's really insightful self-reflection. Dr. Chen will find this helpful for your next session. Is there anything else you'd like to explore today?",
+        "I'm here to support you between sessions. Remember, everything we discuss is guided by Dr. Chen's clinical direction and will be summarized for your next appointment."
+      ];
+      return fallbacks[Math.floor(Math.random() * fallbacks.length)];
+    }
+
+    function sendMessage(text) {
+      if (!text.trim()) return;
+      addMessage(text, 'user');
+      chatInput.value = '';
+      suggestions.style.display = 'none';
+
+      if (detectCrisis(text)) {
+        handleCrisisResponse();
+        return;
+      }
+
+      showTyping();
+      var delay = 800 + Math.random() * 1200;
+      setTimeout(function() {
+        hideTyping();
+        var response = getNextResponse(text);
+        addMessage(response, 'ai');
+
+        // Show contextual follow-up suggestions
+        if (conversationStep === 1 && currentFlow === 'anxious') {
+          showSuggestions(["Yes, let's try it", "I just want to talk about it", "Not right now"]);
+        } else if (conversationStep >= 2 && currentFlow) {
+          showSuggestions(["Okay, here goes...", "This is helping", "Can we try something else?"]);
+        }
+      }, delay);
+    }
+
+    function showSuggestions(items) {
+      suggestions.innerHTML = '';
+      suggestions.style.display = 'flex';
+      items.forEach(function(item) {
+        var btn = document.createElement('button');
+        btn.className = 'chat-suggestion';
+        btn.textContent = item;
+        btn.dataset.msg = item;
+        btn.addEventListener('click', function() { sendMessage(this.dataset.msg); });
+        suggestions.appendChild(btn);
+      });
+    }
+
+    chatSend.addEventListener('click', function() { sendMessage(chatInput.value); });
+    chatInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { sendMessage(chatInput.value); }
+    });
+
+    // Suggestion buttons
+    document.querySelectorAll('.chat-suggestion').forEach(function(btn) {
+      btn.addEventListener('click', function() { sendMessage(this.dataset.msg); });
+    });
+
+    // =========================================
+    // Mood Check-in
+    // =========================================
+    var moodBtns = document.querySelectorAll('.mood-btn');
+    var moodSubmit = document.getElementById('mood-submit');
+    var selectedMood = null;
+
+    moodBtns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        moodBtns.forEach(function(b) { b.classList.remove('selected'); });
+        btn.classList.add('selected');
+        selectedMood = btn.dataset.mood;
+        moodSubmit.classList.add('ready');
+      });
+    });
+
+    moodSubmit.addEventListener('click', function() {
+      if (!selectedMood) return;
+      document.getElementById('mood-form').style.display = 'none';
+      document.getElementById('mood-result').style.display = 'block';
+    });
+
+    // =========================================
+    // Homework Completion
+    // =========================================
+    document.querySelectorAll('.hw-card').forEach(function(card) {
+      card.querySelector('.hw-check').addEventListener('click', function() {
+        if (card.classList.contains('completed')) return;
+        card.classList.add('completed');
+        var checkbox = card.querySelector('.hw-checkbox');
+        checkbox.innerHTML = '&#x2713;';
+        card.querySelector('.hw-check').lastChild.textContent = ' Completed';
+      });
+    });
+
+    // =========================================
+    // Therapist Sidebar Navigation
+    // =========================================
+    var sidebarLinks = document.querySelectorAll('.sidebar-link[data-dash]');
+    var dashPanels = document.querySelectorAll('.dash-panel');
+
+    sidebarLinks.forEach(function(link) {
+      link.addEventListener('click', function() {
+        sidebarLinks.forEach(function(l) { l.classList.remove('active'); });
+        dashPanels.forEach(function(p) { p.classList.remove('active'); });
+        link.classList.add('active');
+        document.getElementById('dash-' + link.dataset.dash).classList.add('active');
+      });
+    });
+
+    // =========================================
+    // Patient Detail View
+    // =========================================
+    var patientData = {
+      alex: {
+        name: 'Alex Martinez', initials: 'AM', color: 'var(--teal-600)',
+        diagnosis: 'GAD, Social Anxiety &middot; Active since Jan 2026',
+        moodData: [3, 2, 3, 4, 3, 4, 5],
+        moodColors: ['var(--warning)', 'var(--danger)', 'var(--warning)', 'var(--teal-400)', 'var(--warning)', 'var(--teal-400)', 'var(--success)'],
+        briefing: {
+          summary: 'Alex has been actively engaged this week with 7 mood check-ins and 4 completed exercises. Overall trajectory is positive with mood trending upward from 2.8 to 4.2 average.',
+          keyMoments: 'Reported a panic attack on Monday after a work presentation. Used the 5-4-3-2-1 grounding technique successfully for the first time without prompting. Described feeling "proud" afterward.',
+          exerciseProgress: '3/3 grounding exercises completed, 1/1 thought record completed, 5/5 gratitude journal entries logged. All exercises marked complete.',
+          concerns: 'None flagged. Social anxiety around work presentations remains a recurring theme. Consider exploring exposure hierarchy next session.',
+          suggestion: 'Alex seems ready for more advanced CBT work. The successful spontaneous use of grounding suggests good skill acquisition. Consider introducing behavioral experiments for social situations.'
+        }
+      },
+      jordan: {
+        name: 'Jordan Kim', initials: 'JK', color: 'var(--danger)',
+        diagnosis: 'MDD, PTSD &middot; Active since Dec 2025',
+        moodData: [4, 3, 3, 2, 1, 1, 1],
+        moodColors: ['var(--teal-400)', 'var(--warning)', 'var(--warning)', 'var(--danger)', 'var(--danger)', 'var(--danger)', 'var(--danger)'],
+        briefing: {
+          summary: 'Jordan\'s engagement has decreased significantly. Only 3 check-ins this week (down from 6 last week). Mood has declined steadily. A crisis flag was triggered 45 minutes ago.',
+          keyMoments: 'Expressed feelings of hopelessness on Wednesday: "Nothing I do seems to matter." Today, expressed passive suicidal ideation: "Sometimes I think everyone would be better off without me." Crisis protocol was immediately activated.',
+          exerciseProgress: '0/2 thought records completed, 1/3 mindfulness exercises attempted. Exercise engagement has dropped significantly.',
+          concerns: '<strong style="color:var(--danger);">CRITICAL:</strong> Crisis protocol activated. Patient expressed passive SI. Crisis resources provided (988, Crisis Text Line). Recommend urgent outreach before next scheduled session.',
+          suggestion: 'Prioritize safety assessment at start of next session. Review medication with prescriber. Consider increasing session frequency temporarily. PTSD trauma processing may need to be paused in favor of stabilization.'
+        }
+      },
+      sam: {
+        name: 'Sam Rivera', initials: 'SR', color: 'var(--gold-500)',
+        diagnosis: 'Adjustment Disorder &middot; Active since Feb 2026',
+        moodData: [2, 2, 3, 3, 3, 4, 4],
+        moodColors: ['var(--danger)', 'var(--danger)', 'var(--warning)', 'var(--warning)', 'var(--warning)', 'var(--teal-400)', 'var(--teal-400)'],
+        briefing: {
+          summary: 'Sam is showing steady improvement with 5 check-ins this week. Mood has gradually increased from average 2.5 to 3.8. Consistently engaging with exercises.',
+          keyMoments: 'Reported feeling "more in control" for the first time since the divorce filing. Used the thought record to challenge catastrophizing about finances. Identified the distortion independently.',
+          exerciseProgress: '2/2 thought records completed, 3/3 journal entries, 1/2 mindfulness exercises. Good overall engagement.',
+          concerns: 'None critical. Financial anxiety remains the primary stressor. Sleep quality mentioned as "improving but not great."',
+          suggestion: 'Progress is encouraging. Consider exploring values-based goal setting as Sam appears ready for forward-looking work. Continue monitoring sleep patterns.'
+        }
+      },
+      casey: {
+        name: 'Casey Taylor', initials: 'CT', color: 'var(--gray-500)',
+        diagnosis: 'Panic Disorder &middot; Active since Jan 2026',
+        moodData: [3, 3, 0, 0, 0, 0, 2],
+        moodColors: ['var(--warning)', 'var(--warning)', 'var(--gray-200)', 'var(--gray-200)', 'var(--gray-200)', 'var(--gray-200)', 'var(--danger)'],
+        briefing: {
+          summary: 'Casey has been largely disengaged — only 1 check-in this week after 5 days of inactivity. Last mood score was 2 (low). No exercises completed.',
+          keyMoments: 'In their only check-in, Casey mentioned: "I haven\'t slept well in days and I don\'t feel like doing any of this." The sleep monitoring rule was triggered (3rd mention of poor sleep this week).',
+          exerciseProgress: '0/2 breathing exercises, 0/1 exposure log, 0/3 journal entries. No exercises attempted.',
+          concerns: 'Disengagement pattern may indicate worsening symptoms or reduced motivation. Poor sleep reported repeatedly. Consider whether panic attacks have increased outside of sessions.',
+          suggestion: 'Gently explore barriers to app engagement at next session. Avoid framing as non-compliance — curiosity over judgment. Review sleep hygiene and consider whether insomnia is maintaining panic symptoms.'
+        }
+      }
+    };
+
+    document.querySelectorAll('.patient-table tbody tr').forEach(function(row) {
+      row.addEventListener('click', function() {
+        var id = row.dataset.patient;
+        var p = patientData[id];
+        if (!p) return;
+
+        var moodBars = '';
+        var days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        for (var i = 0; i < p.moodData.length; i++) {
+          var h = p.moodData[i] > 0 ? (p.moodData[i] * 20) : 4;
+          moodBars += '<div class="mood-chart-bar" style="height:' + h + '%;background:' + p.moodColors[i] + ';"><span class="bar-label">' + days[i] + '</span></div>';
+        }
+
+        document.getElementById('dash-patient-detail').innerHTML =
+          '<button class="detail-back" id="detail-back-btn">&larr; Back to Patients</button>' +
+          '<div class="detail-header">' +
+            '<div class="detail-avatar" style="background:' + p.color + ';">' + p.initials + '</div>' +
+            '<div><div class="detail-name">' + p.name + '</div><div class="detail-meta">' + p.diagnosis + '</div></div>' +
+          '</div>' +
+          '<div class="detail-grid">' +
+            '<div>' +
+              '<div class="detail-card"><h3>Between-Session Briefing</h3>' +
+                '<div class="briefing-item"><div class="briefing-label">Summary</div><div class="briefing-text">' + p.briefing.summary + '</div></div>' +
+                '<div class="briefing-item"><div class="briefing-label">Key Moments</div><div class="briefing-text">' + p.briefing.keyMoments + '</div></div>' +
+                '<div class="briefing-item"><div class="briefing-label">Exercise Progress</div><div class="briefing-text">' + p.briefing.exerciseProgress + '</div></div>' +
+                '<div class="briefing-item"><div class="briefing-label">Concerns</div><div class="briefing-text">' + p.briefing.concerns + '</div></div>' +
+                '<div class="briefing-item"><div class="briefing-label">Clinical Suggestion</div><div class="briefing-text">' + p.briefing.suggestion + '</div></div>' +
+              '</div>' +
+            '</div>' +
+            '<div>' +
+              '<div class="detail-card"><h3>Mood This Week</h3><div class="mood-chart">' + moodBars + '</div></div>' +
+            '</div>' +
+          '</div>';
+
+        dashPanels.forEach(function(p) { p.classList.remove('active'); });
+        document.getElementById('dash-patient-detail').classList.add('active');
+        sidebarLinks.forEach(function(l) { l.classList.remove('active'); });
+
+        document.getElementById('detail-back-btn').addEventListener('click', function() {
+          dashPanels.forEach(function(p) { p.classList.remove('active'); });
+          document.getElementById('dash-patients').classList.add('active');
+          sidebarLinks.forEach(function(l) { l.classList.remove('active'); });
+          document.querySelector('.sidebar-link[data-dash="patients"]').classList.add('active');
+        });
+      });
+    });
+
+  })();
+  </script>
+</body>
+</html>
