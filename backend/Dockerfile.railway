@@ -1,0 +1,38 @@
+# Stage 1: Build patient app
+FROM node:20-alpine AS patient-builder
+WORKDIR /app
+COPY patient-app/package*.json ./
+RUN npm ci
+COPY patient-app/ ./
+ARG BACKEND_URL
+ENV VITE_API_URL=""
+ENV VITE_WS_URL=""
+RUN npm run build
+
+# Stage 2: Build backend
+FROM node:20-alpine AS backend-builder
+WORKDIR /app
+COPY backend/package*.json ./
+RUN npm ci
+COPY backend/ ./
+RUN npx prisma generate && npm run build
+
+# Stage 3: Production runtime
+FROM node:20-alpine
+RUN apk add --no-cache dumb-init
+WORKDIR /app
+
+COPY --from=backend-builder /app/package*.json ./
+RUN npm ci --production
+COPY --from=backend-builder /app/dist ./dist
+COPY --from=backend-builder /app/prisma ./prisma
+COPY --from=backend-builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=backend-builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=patient-builder /app/dist ./patient-app-dist
+
+ENV NODE_ENV=production
+ENV PORT=4000
+EXPOSE 4000
+
+# Run migrations then start server
+CMD ["sh", "-c", "npx prisma migrate deploy && dumb-init node dist/index.js"]
