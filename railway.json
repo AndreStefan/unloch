@@ -26,7 +26,7 @@
         "ANTHROPIC_API_KEY": "${{shared.ANTHROPIC_API_KEY}}",
         "NODE_ENV": "production",
         "PORT": "4000",
-        "CORS_ORIGIN": "${{dashboard.RAILWAY_PUBLIC_DOMAIN}},${{patient-app.RAILWAY_PUBLIC_DOMAIN}}"
+        "CORS_ORIGIN": "${{dashboard.RAILWAY_PUBLIC_DOMAIN}},${{patient-app.RAILWAY_PUBLIC_DOMAIN}},safespacefor.us"
       }
     },
     "ai-service": {
