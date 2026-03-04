@@ -26,7 +26,7 @@
         "ANTHROPIC_API_KEY": "${{shared.ANTHROPIC_API_KEY}}",
         "NODE_ENV": "production",
         "PORT": "4000",
-        "CORS_ORIGIN": "${{dashboard.RAILWAY_PUBLIC_DOMAIN}}"
+        "CORS_ORIGIN": "${{dashboard.RAILWAY_PUBLIC_DOMAIN}},${{patient-app.RAILWAY_PUBLIC_DOMAIN}},safespacefor.us"
       }
     },
     "ai-service": {
@@ -53,6 +53,17 @@
       },
       "variables": {
         "PORT": "3000"
+      }
+    },
+    "patient-app": {
+      "source": {
+        "repo": "AndreStefan/unloch",
+        "branch": "main",
+        "rootDirectory": "patient-app"
+      },
+      "variables": {
+        "PORT": "3001",
+        "BACKEND_URL": "http://${{backend.RAILWAY_PRIVATE_DOMAIN}}:4000"
       }
     }
   }
