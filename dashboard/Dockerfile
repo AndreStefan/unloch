@@ -8,10 +8,10 @@ ARG VITE_API_URL
 ENV VITE_API_URL=${VITE_API_URL}
 RUN npm run build
 
-# Stage 2: Serve with lightweight Node server
-FROM node:20-alpine
-RUN npm install -g serve
-COPY --from=builder /app/dist /app/dist
+# Stage 2: Serve with nginx
+FROM nginx:alpine
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/nginx.conf.template
 ENV PORT=3000
 EXPOSE 3000
-CMD sh -c "serve -s /app/dist -l ${PORT}"
+CMD sh -c "envsubst '\$PORT' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
