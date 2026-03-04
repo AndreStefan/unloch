@@ -1,11 +1,10 @@
-import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
-import { v4 as uuidv4 } from 'uuid';
+const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
+const { v4: uuidv4 } = require('uuid');
 
 const prisma = new PrismaClient();
 
 async function seed() {
-  // Skip if already seeded
   const existing = await prisma.therapist.findUnique({
     where: { email: 'dr.chen@unloch.me' },
   });
@@ -17,15 +16,10 @@ async function seed() {
 
   console.log('Seeding database...');
 
-  // Create practice
   const practice = await prisma.practice.create({
-    data: {
-      id: uuidv4(),
-      name: 'Unloch Demo Clinic',
-    },
+    data: { id: uuidv4(), name: 'Unloch Demo Clinic' },
   });
 
-  // Create therapist
   const hashedPassword = await bcrypt.hash('DemoPass123', 12);
   const therapist = await prisma.therapist.create({
     data: {
@@ -40,7 +34,6 @@ async function seed() {
   });
   console.log('Created therapist:', therapist.email);
 
-  // Create patients
   const alex = await prisma.patient.create({
     data: {
       name: 'Alex Martinez',
@@ -50,7 +43,6 @@ async function seed() {
       consentDate: new Date(),
     },
   });
-
   const jordan = await prisma.patient.create({
     data: {
       name: 'Jordan Kim',
@@ -60,7 +52,6 @@ async function seed() {
       consentDate: new Date(),
     },
   });
-
   const sam = await prisma.patient.create({
     data: {
       name: 'Sam Rivera',
@@ -72,7 +63,6 @@ async function seed() {
   });
   console.log('Created 3 patients');
 
-  // Create mood logs — Alex (improving)
   const alexMoods = [3, 2, 3, 4, 3, 4, 5];
   for (let i = 0; i < alexMoods.length; i++) {
     const d = new Date();
@@ -87,7 +77,6 @@ async function seed() {
     });
   }
 
-  // Create mood logs — Jordan (declining)
   const jordanMoods = [4, 3, 3, 2, 1, 1, 1];
   for (let i = 0; i < jordanMoods.length; i++) {
     const d = new Date();
@@ -102,7 +91,6 @@ async function seed() {
     });
   }
 
-  // Create mood logs — Sam (steady improvement)
   const samMoods = [2, 2, 3, 3, 3, 4, 4];
   for (let i = 0; i < samMoods.length; i++) {
     const d = new Date();
@@ -118,21 +106,17 @@ async function seed() {
   }
   console.log('Created mood logs');
 
-  // Create assignments
   await prisma.assignment.create({
     data: {
-      patientId: alex.id,
-      therapistId: therapist.id,
+      patientId: alex.id, therapistId: therapist.id,
       title: '5-4-3-2-1 Grounding',
       content: 'When anxiety rises, identify 5 things you see, 4 hear, 3 touch, 2 smell, 1 taste.',
-      type: 'exercise',
-      completedAt: new Date(),
+      type: 'exercise', completedAt: new Date(),
     },
   });
   await prisma.assignment.create({
     data: {
-      patientId: alex.id,
-      therapistId: therapist.id,
+      patientId: alex.id, therapistId: therapist.id,
       title: 'Thought Record',
       content: 'Write down one automatic negative thought. Identify the distortion and create a balanced thought.',
       type: 'exercise',
@@ -140,8 +124,7 @@ async function seed() {
   });
   await prisma.assignment.create({
     data: {
-      patientId: alex.id,
-      therapistId: therapist.id,
+      patientId: alex.id, therapistId: therapist.id,
       title: 'Gratitude Journal',
       content: 'Each evening, write down 3 things you are grateful for.',
       type: 'exercise',
@@ -154,6 +137,6 @@ async function seed() {
 }
 
 seed().catch((e) => {
-  console.error(e);
+  console.error('Seed error:', e);
   process.exit(1);
 });

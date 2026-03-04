@@ -36,5 +36,5 @@ ENV NODE_ENV=production
 ENV PORT=4000
 EXPOSE 4000
 
-# Run migrations then start server
-CMD ["sh", "-c", "npx prisma migrate deploy && dumb-init node dist/index.js"]
+# Run migrations, seed demo data, then start server
+CMD ["sh", "-c", "npx prisma migrate deploy && node prisma/seed.js && dumb-init node dist/index.js"]
