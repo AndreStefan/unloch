@@ -43,11 +43,10 @@
     "dashboard": {
       "source": {
         "repo": "AndreStefan/unloch",
-        "branch": "main"
+        "branch": "main",
+        "rootDirectory": "dashboard"
       },
       "build": {
-        "dockerfilePath": "dashboard/Dockerfile",
-        "buildContext": "dashboard",
         "buildArgs": {
           "VITE_API_URL": "https://${{backend.RAILWAY_PUBLIC_DOMAIN}}"
         }
