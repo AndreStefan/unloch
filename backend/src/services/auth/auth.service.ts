@@ -220,8 +220,8 @@ export async function requestPatientMagicLink(email: string) {
     message: 'If an account exists, a login link has been sent.',
   };
 
-  // In development, return the token so the frontend can bypass email
-  if (process.env.NODE_ENV !== 'production') {
+  // In development or demo mode, return the token so the frontend can bypass email
+  if (process.env.NODE_ENV !== 'production' || process.env.DEMO_MODE === 'true') {
     response.devToken = token;
   }
 

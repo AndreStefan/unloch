@@ -25,8 +25,9 @@
         "AI_SERVICE_URL": "${{ai-service.RAILWAY_PRIVATE_DOMAIN}}:8000",
         "ANTHROPIC_API_KEY": "${{shared.ANTHROPIC_API_KEY}}",
         "NODE_ENV": "production",
+        "DEMO_MODE": "true",
         "PORT": "4000",
-        "CORS_ORIGIN": "${{dashboard.RAILWAY_PUBLIC_DOMAIN}},${{patient-app.RAILWAY_PUBLIC_DOMAIN}},safespacefor.us"
+        "CORS_ORIGIN": "${{dashboard.RAILWAY_PUBLIC_DOMAIN}},${{patient-app.RAILWAY_PUBLIC_DOMAIN}},https://app.safespacefor.us,https://safespacefor.us"
       }
     },
     "ai-service": {
