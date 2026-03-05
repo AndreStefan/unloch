@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { RateLimiterRedis } from 'rate-limiter-flexible';
+import { RateLimiterRedis, RateLimiterMemory } from 'rate-limiter-flexible';
 import { redis } from '../config/redis';
 import { TooManyRequestsError } from '../utils/errors';
 
@@ -11,12 +11,16 @@ const generalLimiter = new RateLimiterRedis({
   duration: 60,
 });
 
-// Login rate limiter: 5 attempts per 15 minutes per IP
+// Login rate limiter: 20 attempts per 15 minutes per IP
 const loginLimiter = new RateLimiterRedis({
   storeClient: redis,
   keyPrefix: 'rl:login',
-  points: 5,
+  points: 20,
   duration: 60 * 15,
+  insuranceLimiter: new RateLimiterMemory({
+    points: 20,
+    duration: 60 * 15,
+  }),
 });
 
 export function rateLimit(req: Request, _res: Response, next: NextFunction) {
