@@ -216,7 +216,16 @@ export async function requestPatientMagicLink(email: string) {
   const link = `${process.env.PATIENT_APP_URL || 'http://localhost:3001'}/auth/verify/${token}`;
   console.log(`[Magic Link] Patient ${patient.email}: ${link}`);
 
-  return { message: 'If an account exists, a login link has been sent.' };
+  const response: { message: string; devToken?: string } = {
+    message: 'If an account exists, a login link has been sent.',
+  };
+
+  // In development or demo mode, return the token so the frontend can bypass email
+  if (process.env.NODE_ENV !== 'production' || process.env.DEMO_MODE === 'true') {
+    response.devToken = token;
+  }
+
+  return response;
 }
 
 export async function verifyPatientMagicLink(token: string) {
