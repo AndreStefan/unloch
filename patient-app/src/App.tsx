@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './hooks/useAuth';
 import { CrisisProvider } from './hooks/useCrisis';
 import AppShell from './components/layout/AppShell';
 import LoginPage from './pages/LoginPage';
+import DemoLoginPage from './pages/DemoLoginPage';
 import ChatPage from './pages/chat/ChatPage';
 import MoodPage from './pages/mood/MoodPage';
 import HomeworkPage from './pages/homework/HomeworkPage';
@@ -46,6 +47,7 @@ export default function App() {
           <CrisisProvider>
             <Routes>
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/demo" element={<DemoLoginPage />} />
               <Route
                 element={
                   <ProtectedRoute>
