@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Heart, Mail, Loader2 } from 'lucide-react';
 import axios from 'axios';
@@ -134,6 +134,15 @@ export default function LoginPage() {
             </p>
           </form>
         )}
+
+        <div className="mt-6 text-center">
+          <Link
+            to="/demo"
+            className="text-sm text-sage-dark hover:text-sage font-medium underline underline-offset-2"
+          >
+            Try the demo
+          </Link>
+        </div>
       </div>
     </div>
   );
