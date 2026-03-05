@@ -38,7 +38,14 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await axios.post('/api/v1/auth/patient/login', { email });
+      const { data } = await axios.post('/api/v1/auth/patient/login', { email });
+      // In dev mode, the backend returns the token directly — auto-verify
+      if (data.devToken) {
+        const verifyRes = await axios.get(`/api/v1/auth/patient/verify/${data.devToken}`);
+        login(verifyRes.data.accessToken, verifyRes.data.refreshToken, verifyRes.data.user);
+        navigate('/chat', { replace: true });
+        return;
+      }
       setSent(true);
     } catch (err: unknown) {
       if (axios.isAxiosError(err) && err.response?.data?.error) {
